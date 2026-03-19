@@ -1,0 +1,22 @@
+{
+  "name": "shadow",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx nodemon app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@octokit/rest": "^22.0.1",
+    "axios": "^1.13.6",
+    "dotenv": "^17.3.1",
+    "node-telegram-bot-api": "^0.67.0",
+    "nodemon": "^3.1.14",
+    "octokit": "^5.0.5",
+    "tgfancy": "^0.13.0"
+  }
+}
