@@ -3,9 +3,20 @@ const telegramBot = require('node-telegram-bot-api')
 const dotenv = require('dotenv').config()
 const axios = require('axios')
 const { Octokit } = require('@octokit/rest')
+const Anthropic = require('@anthropic-ai/sdk')
+const { GoogleGenAI } = require('@google/genai')
 
-const token = process.env.BOT_TOKEN
+const token = process.env.BOT_TOKEN;
 
+const client = new Anthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY,
+})
+
+const GEMINI_API_KEY = process.env.GEMINI_API;
+
+const ai = new GoogleGenAI({
+    apiKey: GEMINI_API_KEY
+})
 
 const bot = new Tgfancy(token,{
     polling: true,
@@ -45,33 +56,153 @@ bot.onText(/\/track (.+)/ , async (msg,match) => {
     const chatid = msg.chat.id;
     const userinput = match[1];
 
-    bot.sendMessage(chatid,"Starting Tracking........")
-    bot.sendMessage(chatid,"Tell Company")
+    bot.sendMessage(chatid,`Great Choice ${userinput}`).then((sent) => {
+        
+       
+        setTimeout(() => {
+            bot.sendChatAction(chatid,"typing")
+            bot.editMessageText("Starting Survillance 🕵️‍♀️...",{
+                chat_id: chatid,
+                message_id: sent.message_id
+            })
+        },1000)
+            setTimeout(() => {
+                bot.sendChatAction(chatid,"typing")
+            bot.editMessageText("Finding Companies Organizations......", {
+                chat_id:chatid,
+                message_id: sent.message_id
+            })
+        },2000)
+        setTimeout(() => {
+            bot.sendChatAction(chatid,"typing")
+            bot.editMessageText("🔍 Scanning GitHub...", {
+                chat_id:chatid,
+                message_id:sent.message_id
+            })
+        },3000)
+        setTimeout(() => {
+            bot.sendChatAction(chatid,"typing")
+            bot.editMessageText("📦 Found 12 repositories...", {
+                chat_id: chatid,
+                message_id:sent.message_id
+            })
+        },4000)
+            setTimeout(() => {
+                bot.sendChatAction(chatid,"typing")
+            bot.editMessageText("🧠 Analysing latest commit history...",{
+                chat_id: chatid,
+                message_id: sent.message_id
+            })
+        },5000)
+        setTimeout(() => {
+            bot.sendChatAction(chatid,"typing")
+            bot.editMessageText("📝 Generating intelligence report...", {
+                chat_id:chatid,
+                message_id:sent.message_id
 
-
-      const repodata = await octokit.request(
-        "GET /search/repositories",{
-
-            q: userinput
-        }
+            })
+        },6000)
+        
 
         
-      )
+        
+    })
+    
 
-      const repodataa = repodata.data.items[0]
 
-      bot.sendMessage(chatid,"This is your repo data by octokit use it and go f*ck yourself baby")
 
-    //    bot.sendMessage(chatid,`🎁 Repo ${repodataa.name}`)
-    //    bot.sendMessage(chatid,`🎁 Stars Count ${repodataa.stargazers_count}`)
-    //    bot.sendMessage(chatid,`🎁 Repo URL ${repodataa.html_url}`)  
+    
+
+    
+  const org = userinput;
+
+
+   const orgdata = await octokit.rest.repos.listForOrg({
+  org: org,
+});
+
+const orgdatas = orgdata.data;
+
+const orgass = orgdatas[0];
+
+    // bot.sendMessage(chatid, `${orgass.name}`)
+    // bot.sendMessage(chatid,`${orgass.html_url}`)
+
+
+    const owner = orgass.owner.login;
+    const repo = orgass.name;
+
+    const commitsdata = await octokit.rest.repos.listCommits({
+        owner,
+        repo
+    })
+
+    const commass = commitsdata.data[0];
+     
+    //  bot.sendMessage(chatid,`${commass.commit.message}`)
+
+     const readmedata = await octokit.rest.repos.getReadme({
+        owner,
+        repo
+     })
+
+
+     const path = readmedata;
+
+     const repoalldata =  octokit.rest.repos.getContent({
+        owner,
+        repo,
+        path
+     })
+     
+    //  console.log(repoalldata)
         
 
+    const alldata = {orgass,repoalldata,readmedata,commass }
+    const alldatastr = JSON.stringify(alldata)
+
+   //Generating some reports with claude
    
+//    const message = await client.messages.create({
+//     max_tokens: 1024,
+//     messages: [{role: "user", content: `Generate a precise texh report on what this ${alldatastr} company github repo data gives so that user can prepare for the company better`}],
+//     model: 'Claude-sonnet-4-5'
+//    })
+
+//    console.log(message.content[0].text)
+
+     
+
+//Generating some reports with gemini
+
+
+const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents:  `You are a Shadow, a company intelligence bot. That genberates  clean report using only plain text
+    and emojis. No Markdown, no LaTeX, no special formatting but for now its just for github repo data not other reports add this too.
+    Generate a precise text report on what this ${alldatastr} company github repo data gives so that user can prepare for the company better`
+})
+
+// console.log(response.text)
+
+// bot.sendMessage(chatid,response.text)
+
+
+// bot.sendMessage(chatid,"📝 Generating intelligence report...").then((sent) => {
+//     setTimeout(() => {
+//             bot.sendMessage(chatid,"typing..")
+//             bot.deleteMessage(chatid,sent.message_id)
+//             bot.sendMessage(chatid,response.text)
+//         },7000)
+
+// })
+
+
+bot.deleteMessage(chatid,sent.message_id)
+bot.sendMessage(chatid,response.text)
 
 
 
-   
 })
 
 
