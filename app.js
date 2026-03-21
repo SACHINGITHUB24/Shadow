@@ -5,6 +5,7 @@ const axios = require('axios')
 const { Octokit } = require('@octokit/rest')
 const Anthropic = require('@anthropic-ai/sdk')
 const { GoogleGenAI } = require('@google/genai')
+const cron = require('node-cron')
 
 const token = process.env.BOT_TOKEN;
 
@@ -12,7 +13,7 @@ const client = new Anthropic({
     apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
-const GEMINI_API_KEY = process.env.GEMINI_API;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY2;
 
 const ai = new GoogleGenAI({
     apiKey: GEMINI_API_KEY
@@ -56,6 +57,8 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
     const chatid = msg.chat.id;
     const userinput = match[1];
 
+
+    //Github all Data Code
     bot.sendMessage(chatid, `Great Choice ${userinput}`).then((sent) => {
 
 
@@ -161,6 +164,32 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
     const alldata = { orgass,repoalldata, readmedata, commass }
     const alldatastr = JSON.stringify(alldata)
 
+
+        //Job Posting Data Code
+
+const options = {
+  method: 'GET',
+  url: 'https://jsearch.p.rapidapi.com/search',
+  params: {
+    query: `${userinput} latest tech jobs`,
+    page: '1',
+    num_pages: '1',
+    country: 'us',
+    date_posted: 'all'
+  },
+  headers: {
+    'x-rapidapi-key': '9a225fd3b3msh1e8df5026b6beadp1bab82jsn5898b6462e44',
+    'x-rapidapi-host': 'jsearch.p.rapidapi.com',
+    'Content-Type': 'application/json'
+  }
+};
+
+const responsej = await axios.request(options);
+		// console.log(responsej.data);
+
+const jobdata = JSON.stringify(responsej.data.data)
+
+
     //Generating some reports with claude
 
     //    const message = await client.messages.create({
@@ -176,16 +205,23 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
     //Generating some reports with gemini
 
 
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: `You are a Shadow, a company intelligence bot. That genberates  clean report using only plain text
-    and emojis. No Markdown, no LaTeX, no special formatting but for now its just for github repo data not other reports add this too.
-    Generate a precise text report on what this ${alldatastr} company github repo data gives so that user can prepare for the company better`
-    })
+    // const response = await ai.models.generateContent({
+    //     model: 'gemini-2.5-flash',
+    //     contents: `You are a Shadow, a company intelligence bot. That genberates  clean report using only plain text
+    // and emojis. No Markdown, no LaTeX, no special formatting but for now its just for github repo data not other reports add this too.
+    // Generate a precise text report on what this ${alldatastr} company github repo data gives so that user can prepare for the company better and with their current jobs that are ${jobdata}`
+    // })
 
     // console.log(response.text)
 
     // bot.sendMessage(chatid,response.text)
+
+
+    const weeklyreport = cron.schedule('* 50 12 * * 6', () => {
+        bot.sendMessage(chatid,"Weekly Report Testing........")
+
+    })
+    })
 
 
     // bot.sendMessage(chatid,"📝 Generating intelligence report...").then((sent) => {
@@ -199,11 +235,9 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
 
 
     // bot.deleteMessage(chatid, sent.message_id)
-    bot.sendMessage(chatid, response.text)
+    // bot.sendMessage(chatid, response.text)
 
 
-
-})
 
 
 bot.on("message", async (msg) => {
