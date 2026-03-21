@@ -217,10 +217,14 @@ const jobdata = JSON.stringify(responsej.data.data)
     // bot.sendMessage(chatid,response.text)
 
 
-    const weeklyreport = cron.schedule('* 50 12 * * 6', () => {
+   
+    })
+
+     const weeklyreport = cron.schedule('0 07 1 * * 6', () => {
         bot.sendMessage(chatid,"Weekly Report Testing........")
 
-    })
+    },{
+        timezone:"Asia/Kolkata"
     })
 
 
