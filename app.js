@@ -205,16 +205,16 @@ const jobdata = JSON.stringify(responsej.data.data)
     //Generating some reports with gemini
 
 
-    // const response = await ai.models.generateContent({
-    //     model: 'gemini-2.5-flash',
-    //     contents: `You are a Shadow, a company intelligence bot. That genberates  clean report using only plain text
-    // and emojis. No Markdown, no LaTeX, no special formatting but for now its just for github repo data not other reports add this too.
-    // Generate a precise text report on what this ${alldatastr} company github repo data gives so that user can prepare for the company better and with their current jobs that are ${jobdata}`
-    // })
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `You are a Shadow, a company intelligence bot. That genberates  clean report using only plain text
+    and emojis. No Markdown, no LaTeX, no special formatting but for now its just for github repo data not other reports add this too.
+    Generate a precise text report on what this ${alldatastr} company github repo data gives so that user can prepare for the company better and with their current jobs that are ${jobdata}`
+    })
 
-    // console.log(response.text)
+    console.log(response.text)
 
-    // bot.sendMessage(chatid,response.text)
+    bot.sendMessage(chatid,response.text)
 
 
    
