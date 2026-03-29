@@ -58,8 +58,10 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
     const userinput = match[1];
 
 
+
+
     //Github all Data Code
-    bot.sendMessage(chatid, `Great Choice ${userinput}`).then((sent) => {
+    bot.sendMessage(chatid, `Hmm ${userinput}`).then((sent) => {
 
 
         setTimeout(() => {
@@ -104,7 +106,7 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
                 message_id: sent.message_id
 
             })
-        }, 6000)
+        }, 9000)
 
 
 
@@ -209,23 +211,32 @@ const jobdata = JSON.stringify(responsej.data.data)
         model: 'gemini-2.5-flash',
         contents: `You are a Shadow, a company intelligence bot. That genberates  clean report using only plain text
     and emojis. No Markdown, no LaTeX, no special formatting but for now its just for github repo data not other reports add this too.
-    Generate a precise text report on what this ${alldatastr} company github repo data gives so that user can prepare for the company better and with their current jobs that are ${jobdata}`
+    Generate a precise text report on what this ${alldatastr} company github repo data gives so that user can prepare for the company better
+     and with their current jobs that are ${jobdata} Just give important data dont give all and also in that just show when updated and in last
+      type started Survillance agains company giving all necessary report please be attented`
     })
 
     console.log(response.text)
 
-    bot.sendMessage(chatid,response.text)
+    // bot.sendMessage(chatid,response.text)
+
+      const weeklyreport = cron.schedule('0 45 21 * * 6', () => {
+        bot.sendMessage(chatid,response.text)
+
+    },{
+        timezone:"Asia/Kolkata"
+    })
 
 
    
     })
 
-     const weeklyreport = cron.schedule('0 07 1 * * 6', () => {
-        bot.sendMessage(chatid,"Weekly Report Testing........")
+   
 
-    },{
-        timezone:"Asia/Kolkata"
-    })
+   
+
+    
+    
 
 
     // bot.sendMessage(chatid,"📝 Generating intelligence report...").then((sent) => {
