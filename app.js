@@ -287,7 +287,7 @@ bot.sendMessage(chatid, response.text)
 
 
 
-cron.schedule('0 9 * * 1', async () => {
+cron.schedule('20 23 * * *', async () => {
 
     for(const key in companynames){
         const savedcompanies = companynames[key]
@@ -339,7 +339,7 @@ Data: GitHub — ${alldatastr} Jobs — ${jobdata} Blog — ${blogdata}`
 // console.log(response.text)
 
 
-bot.sendMessage(chatid, response.text)
+bot.sendMessage(chatid,"Hello Sachin from shadow by Cron scheduler just observe it's working!")
     
 
 }
