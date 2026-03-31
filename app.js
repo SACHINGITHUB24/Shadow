@@ -6,6 +6,8 @@ const { Octokit } = require('@octokit/rest')
 const Anthropic = require('@anthropic-ai/sdk')
 const { GoogleGenAI } = require('@google/genai')
 const cron = require('node-cron')
+const Parser = require('rss-parser')
+const parser = new Parser();
 
 const token = process.env.BOT_TOKEN;
 
@@ -56,6 +58,8 @@ bot.onText(/\/start/, async (msg, match) => {
 bot.onText(/\/track (.+)/, async (msg, match) => {
     const chatid = msg.chat.id;
     const userinput = match[1];
+    const usercomp = {}
+
 
 
 
@@ -106,7 +110,7 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
                 message_id: sent.message_id
 
             })
-        }, 9000)
+        }, 11000)
 
 
 
@@ -144,6 +148,8 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
 
     const commass = commitsdata.data[0];
 
+
+
     //  bot.sendMessage(chatid,`${commass.commit.message}`)
 
     const readmedata = await octokit.rest.repos.getReadme({
@@ -163,94 +169,198 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
     //  console.log(repoalldata)
 
 
-    const alldata = { orgass,repoalldata, readmedata, commass }
+
+    const alldata = { orgass, repoalldata, readmedata, commass }
     const alldatastr = JSON.stringify(alldata)
 
+    //checking every hours data
 
-        //Job Posting Data Code
+
+
+
+
+
+
+
+//Job Posting Data Code
 
 const options = {
-  method: 'GET',
-  url: 'https://jsearch.p.rapidapi.com/search',
-  params: {
-    query: `${userinput} latest tech jobs`,
-    page: '1',
-    num_pages: '1',
-    country: 'us',
-    date_posted: 'all'
-  },
-  headers: {
-    'x-rapidapi-key': '9a225fd3b3msh1e8df5026b6beadp1bab82jsn5898b6462e44',
-    'x-rapidapi-host': 'jsearch.p.rapidapi.com',
-    'Content-Type': 'application/json'
-  }
+    method: 'GET',
+    url: 'https://jsearch.p.rapidapi.com/search',
+    params: {
+        query: `${userinput} latest tech jobs`,
+        page: '1',
+        num_pages: '1',
+        country: 'us',
+        date_posted: 'all'
+    },
+    headers: {
+        'x-rapidapi-key': '9a225fd3b3msh1e8df5026b6beadp1bab82jsn5898b6462e44',
+        'x-rapidapi-host': 'jsearch.p.rapidapi.com',
+        'Content-Type': 'application/json'
+    }
 };
 
 const responsej = await axios.request(options);
-		// console.log(responsej.data);
+// console.log(responsej.data);
 
 const jobdata = JSON.stringify(responsej.data.data)
 
+const blogdata = await axios.request(`https://dev.to/api/articles?tag=${userinput}`)
+// console.log(blogdata)
 
-    //Generating some reports with claude
+//Generating some reports with claude
 
-    //    const message = await client.messages.create({
-    //     max_tokens: 1024,
-    //     messages: [{role: "user", content: `Generate a precise texh report on what this ${alldatastr} company github repo data gives so that user can prepare for the company better`}],
-    //     model: 'Claude-sonnet-4-5'
-    //    })
+//    const message = await client.messages.create({
+//     max_tokens: 1024,
+//     messages: [{role: "user", content: `Generate a precise texh report on what this ${alldatastr} company github repo data gives so that user can prepare for the company better`}],
+//     model: 'Claude-sonnet-4-5'
+//    })
 
-    //    console.log(message.content[0].text)
-
-
-
-    //Generating some reports with gemini
+//    console.log(message.content[0].text)
 
 
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: `You are a Shadow, a company intelligence bot. That genberates  clean report using only plain text
-    and emojis. No Markdown, no LaTeX, no special formatting but for now its just for github repo data not other reports add this too.
-    Generate a precise text report on what this ${alldatastr} company github repo data gives so that user can prepare for the company better
-     and with their current jobs that are ${jobdata} Just give important data dont give all and also in that just show when updated and in last
-      type started Survillance agains company giving all necessary report please be attented`
-    })
 
-    console.log(response.text)
+const companynames = `${chatid}_${userinput}`
+console.log(companynames)
 
-    // bot.sendMessage(chatid,response.text)
-
-      const weeklyreport = cron.schedule('0 45 21 * * 6', () => {
-        bot.sendMessage(chatid,response.text)
-
-    },{
-        timezone:"Asia/Kolkata"
-    })
+companynames[key] = {
+    chatid: chatid,
+    company: userinput,
+    owner: owner,
+    repo: repo,
+    alldatastr: alldatastr,
+    jobdata: jobdata,
+    blogdata:blogdata
+    
+}
 
 
-   
-    })
+//Generating some reports with gemini
 
-   
 
-   
+const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    //     contents: `You are a Shadow, a company intelligence bot. That genberates  clean report using only plain text
+    // and emojis. No Markdown, no LaTeX, no special formatting but for now its just for github repo data not other reports add this too.
+    // Generate a precise text report on what this ${alldatastr} company github repo data gives so that user can prepare for the company better
+    //  and with their current jobs that are ${jobdata} Just give important data dont give all and also in that just show when updated and in last
+    //   type started Survillance agains company giving all necessary report please be attente now this is ${blogdata} is blogs data of the company which user asked now make 
+    //   a small short report that gives all correct data from all these data thats which user wants all data and it should be small and
+    //   precise which user understand what you want to say.`
+    contents: `You are Shadow, a company intelligence bot.
+Generate a short and precise intelligence report using only plain text and emojis.
+No markdown, no formatting symbols, no LaTeX.
+
+Use this exact structure —
+
+🕵️ SHADOW INTELLIGENCE REPORT — ${userinput}
+
+🏗️ WHAT THEY ARE BUILDING
+[From GitHub data — 2 to 3 lines max]
+
+💼 OPEN POSITIONS
+[From jobs data — top 3 jobs only with title and location]
+
+📰 LATEST FROM THEIR TECH BLOG
+[From blog data — 1 to 2 recent article titles and what they are about]
+
+🛠️ TECH STACK SIGNALS
+[Any new technology detected from GitHub]
+
+
+🌑 Surveillance started. Shadow is watching. You will now get every monday Shadow report of ${companynames}
+
+Data: GitHub — ${alldatastr} Jobs — ${jobdata} Blog — ${blogdata}`
+})
+
+// console.log(response.text)
+
+
+bot.sendMessage(chatid, response.text)
+
 
     
+
+})
+
+
+
+
+cron.schedule('0 9 * * 1', async () => {
+
+    for(const key in companynames){
+        const savedcompanies = companynames[key]
+
+        const orgdata = await octokit.rest.repos.listForOrg({org: savedcompanies.company})
+        const orgass = orgdata.data[0]
+        const commitsdata = await octokit.rest.repos.listCommits({owner: savedcompanies.owner, repo: savedcompanies.repo})
+        const commass = commitsdata.data[0]
+        const alldatastr = {orgass, commass}
+
+
+       
+
+     const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    //     contents: `You are a Shadow, a company intelligence bot. That genberates  clean report using only plain text
+    // and emojis. No Markdown, no LaTeX, no special formatting but for now its just for github repo data not other reports add this too.
+    // Generate a precise text report on what this ${alldatastr} company github repo data gives so that user can prepare for the company better
+    //  and with their current jobs that are ${jobdata} Just give important data dont give all and also in that just show when updated and in last
+    //   type started Survillance agains company giving all necessary report please be attente now this is ${blogdata} is blogs data of the company which user asked now make 
+    //   a small short report that gives all correct data from all these data thats which user wants all data and it should be small and
+    //   precise which user understand what you want to say.`
+    contents: `You are Shadow, a company intelligence bot.
+Generate a weekly intelligence report using only plain text and emojis.
+No markdown, no formatting symbols, no LaTeX you have also given report before now its given at every monday 9 AM.
+
+Use this exact structure —
+
+🕵️ SHADOW Weekyly Intelligence  REPORT — ${userinput}
+
+🏗️ WHAT THEY ARE BUILDING
+[From GitHub data — 2 to 3 lines max]
+
+💼 OPEN POSITIONS
+[From jobs data — top 3 jobs only with title and location]
+
+📰 LATEST FROM THEIR TECH BLOG
+[From blog data — 1 to 2 recent article titles and what they are about]
+
+🛠️ TECH STACK SIGNALS
+[Any new technology detected from GitHub]
+
+
+🌑 Surveillance started. Shadow is watching. You will now get every monday Shadow report of ${companynames}
+
+Data: GitHub — ${alldatastr} Jobs — ${jobdata} Blog — ${blogdata}`
+})
+
+// console.log(response.text)
+
+
+bot.sendMessage(chatid, response.text)
     
 
-
-    // bot.sendMessage(chatid,"📝 Generating intelligence report...").then((sent) => {
-    //     setTimeout(() => {
-    //             bot.sendMessage(chatid,"typing..")
-    //             bot.deleteMessage(chatid,sent.message_id)
-    //             bot.sendMessage(chatid,response.text)
-    //         },7000)
-
-    // })
+}
+})
 
 
-    // bot.deleteMessage(chatid, sent.message_id)
-    // bot.sendMessage(chatid, response.text)
+
+
+
+// bot.sendMessage(chatid,"📝 Generating intelligence report...").then((sent) => {
+//     setTimeout(() => {
+//             bot.sendMessage(chatid,"typing..")
+//             bot.deleteMessage(chatid,sent.message_id)
+//             bot.sendMessage(chatid,response.text)
+//         },7000)
+
+// })
+
+
+// bot.deleteMessage(chatid, sent.message_id)
+// bot.sendMessage(chatid, response.text)
 
 
 
