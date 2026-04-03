@@ -8,7 +8,6 @@ const { GoogleGenAI } = require('@google/genai')
 const cron = require('node-cron')
 const saveddata = require('./models/userdata')
 const userdata = require('./models/userdata')
-const trackedcompanies = {}
 
 
 const token = process.env.BOT_TOKEN;
@@ -38,12 +37,44 @@ const octokit = new Octokit({
 
 const gitone = process.env.GITHUB_TOKEN
 
-const Startinglins = [
-    `🕵️ Welcome to Shadow. \n I watch. I listen. I report.Tell me which company you want to target and I will become your eyes inside their world.Send /track to begin.`,
-    "👤 Shadow — Company Intelligence System You are now connected.I silently monitor your target companies and deliver everything you need to know before walking into that interview.Send /track <company name> to start surveillance.",
-    "🌑 Shadow is online.No more blind applications.No more unprepared interviews.Who are we watching first? Send /track <company name>"
-]
+// const Startinglins = [
+//     `🕵️ Welcome to Shadow. \n I watch. I listen. I report.Tell me which company you want to target and I will become your eyes inside their world.Send /track to begin.`,
+//     "👤 Shadow — Company Intelligence System You are now connected.I silently monitor your target companies and deliver everything you need to know before walking into that interview.Send /track <company name> to start surveillance.",
+//     "🌑 Shadow is online.No more blind applications.No more unprepared interviews.Who are we watching first? Send /track <company name>"
+// ]
 
+
+const Startinglins = [
+`Shadow — AI Company Intelligence Bot
+
+Get real insights about any company before interviews.
+
+What you get:
+• What they are building
+• Hiring trends
+• Tech stack
+• How to prepare
+
+Start by tracking a company:
+/track <company name>`,
+
+`Welcome to Shadow.
+
+This bot helps you understand companies using real data from GitHub, hiring signals, and tech blogs.
+
+You’ll get a short, structured report to help you prepare smarter.
+
+Try now:
+/track <company name>`,
+
+`Shadow is ready.
+
+Stop guessing interview questions.
+Start preparing with real company intelligence.
+
+Track any company:
+/track <company name>`
+];
 
 bot.onText(/\/start/, async (msg, match) => {
     const chatid = msg.chat.id;
@@ -66,49 +97,49 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
 
 
     //Github all Data Code
-    bot.sendMessage(chatid, `Hmm ${userinput}`).then((sent) => {
+    bot.sendMessage(chatid, `Shadow is initiating intelligence scan for ${userinput}...`).then((sent) => {
 
 
 
 
         setTimeout(() => {
             bot.sendChatAction(chatid, "typing")
-            bot.editMessageText("Starting Survillance 🕵️‍♀️...", {
+            bot.editMessageText(`Started Survillance on ${userinput}🕵️‍♀️...`, {
                 chat_id: chatid,
                 message_id: sent.message_id
             })
         }, 1000)
         setTimeout(() => {
             bot.sendChatAction(chatid, "typing")
-            bot.editMessageText("Finding Companies Organizations......", {
+            bot.editMessageText(`🔎 Locating ${userinput}'s public repositories and engineering activity...`, {
                 chat_id: chatid,
                 message_id: sent.message_id
             })
         }, 2000)
         setTimeout(() => {
             bot.sendChatAction(chatid, "typing")
-            bot.editMessageText("🔍 Scanning GitHub...", {
+            bot.editMessageText(`📦 Analyzing repositories, code patterns, and recent commits...`, {
                 chat_id: chatid,
                 message_id: sent.message_id
             })
         }, 3000)
         setTimeout(() => {
             bot.sendChatAction(chatid, "typing")
-            bot.editMessageText("📦 Found 12 repositories...", {
+            bot.editMessageText(`💼 Gathering hiring signals and open roles...`, {
                 chat_id: chatid,
                 message_id: sent.message_id
             })
         }, 4000)
         setTimeout(() => {
             bot.sendChatAction(chatid, "typing")
-            bot.editMessageText("🧠 Analysing latest commit history...", {
+            bot.editMessageText(`📰 Extracting latest engineering insights and blog signals...`, {
                 chat_id: chatid,
                 message_id: sent.message_id
             })
         }, 5000)
         setTimeout(() => {
             bot.sendChatAction(chatid, "typing")
-            bot.editMessageText("📝 Generating intelligence report...", {
+            bot.editMessageText(`🧠 Synthesizing intelligence and generating your personalized report...`, {
                 chat_id: chatid,
                 message_id: sent.message_id
 
@@ -119,11 +150,6 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
 
 
     })
-
-
-
-
-
 
 
 
@@ -244,12 +270,12 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
 
 
 
-    const key = `${userinput}_${chatid}`
+    // const key = `${userinput}_${chatid}`
 
-    trackedcompanies[key] = {
-        chatid: chatid,
+    // trackedcompanies[key] = {
+    //     chatid: chatid,
 
-    }
+    // }
 
 
 
@@ -268,7 +294,8 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
             date_posted: 'all'
         },
         headers: {
-            'x-rapidapi-key': '9a225fd3b3msh1e8df5026b6beadp1bab82jsn5898b6462e44',
+            // 'x-rapidapi-key': '9a225fd3b3msh1e8df5026b6beadp1bab82jsn5898b6462e44',
+            'x-rapidapi-key': process.env.RAPIDAPI_KEY,
             'x-rapidapi-host': 'jsearch.p.rapidapi.com',
             'Content-Type': 'application/json'
         }
@@ -295,87 +322,97 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
 
 
 
-    //Generating some reports with gemini
+    //Generating Shadow reports with gemini
 
 
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        //     contents: `You are a Shadow, a company intelligence bot. That genberates  clean report using only plain text
-        // and emojis. No Markdown, no LaTeX, no special formatting but for now its just for github repo data not other reports add this too.
-        // Generate a precise text report on what this ${alldatastr} company github repo data gives so that user can prepare for the company better
-        //  and with their current jobs that are ${jobdata} Just give important data dont give all and also in that just show when updated and in last
-        //   type started Survillance agains company giving all necessary report please be attente now this is ${blogdata} is blogs data of the company which user asked now make 
-        //   a small short report that gives all correct data from all these data thats which user wants all data and it should be small and
-        //   precise which user understand what you want to say.`
-        //         contents: `You are Shadow, a company intelligence bot.
-        // Generate a short and precise intelligence report using only plain text and emojis.
-        // No markdown, no formatting symbols, no LaTeX.
 
-        // Use this exact structure —
+        // contents: `You are the Shadow Report Generator Bot You are a Company Intelligence Bot with correct data and also you provide leverage and 
+        // Your Job is to Generate , Short, Clean ,asnd structure Company intelligence Report not the ugly one 
+        // Strict Rules: 
+        //  - Output must be in Plane Text 
+        //  - Dont use much or more emojis that looks unprofessional
+        //  - Dont make reports too complicated make it understandable and begginer freindly
+        // - Do not dump raw data thats waht you will get best input
+        // - make it clean and easy to read dont make letter capitalize just do it way best and professional way
+        // -Add some important things from Raw Data like we taken repo from your stack base provided
 
-        // 🕵️ SHADOW INTELLIGENCE REPORT — ${userinput}
+        //  Structure (Follow This Strictly): 
 
-        // 🏗️ WHAT THEY ARE BUILDING
-        // [From GitHub data — 2 to 3 lines max]
+        //  Shadow Company Report: ${userdata}
+        //   ${alldatastr} What they are Building make this Easy and understandable for begginer and if he does not open the bot just see from 
+        //  notification he can get what bot is saying thats most important and it should be short just with 1 to 2 lines not more than 
+        //  that and also usefull not random stuff 
 
-        // 💼 OPEN POSITIONS
-        // [From jobs data — top 3 jobs only with title and location]
+        //   Hiring Signals: ${jobdata}  Give data from this raw data about like what latest roles they are hiring and also what next they can using their ${alldatastr} 
+        //   github data that + with their correct Jobs Hiring URL's that should be correct not more than 1 or 2 and also that should be correct data 
+        //   using our raw data
 
-        // 📰 LATEST FROM THEIR TECH BLOG
-        // [From blog data — 1 to 2 recent article titles and what they are about]
+        //   Tech Stack used by Company: 
+        //   ${alldatastr} use this github repo data and tell what tech stack they used and how user can should apply this stack and make him
+        //   best for the company 
 
-        // 🛠️ TECH STACK SIGNALS
-        // [Any new technology detected from GitHub]
+        //   Latest Insights: 
+        //   ${blogdata} Give user the best and latest the company he given their latest blogs data that i given to you and tell him what company 
+        //   is solving right now and what he can do form this data he can also use this data to make his project according to this blog data and 
+        //   prepare his project for company so that company should also be take him seriously he get latest update about the company
 
+        //   Why this Matters: 
+        //   With this report he can get prepare for todays era what and how he should be prepare for his interviews for getting standout
 
-        // 🌑 Surveillance started. Shadow is watching.
+        //   and give him clear understandable report so that if begginer should read he gets best data and best info about company what 
+        //   company is doing right now and how his stack can get job after this data
 
-        // Data: GitHub — ${alldatastr} Jobs — ${jobdata} Blog — ${blogdata}`
+        //   and use these data: 
+        //   Github: ${alldatastr}
+        //   Job Data: ${jobdata}
+        //   Blogs Data: ${blogdata}
 
-        // contents: `You are a Shadow Bot that uses to get a Company Insights Report that gives user a report of the user's company that he gives check the company repo and their all latest blogs and all latest job hiring for that 
-        // and also make the report not on latex not on any other format just plain text no emojis and it should not be ugly and its good to read the report. and thats users ${userinput} company name that he gave and also make it short and best ${jobdata} ${blogdata} `
+        // `
 
 
         contents: `
-You are Shadow — an AI Company Intelligence Analyst.
+You are Shadow — an AI Company Intelligence Assistant.
 
-Your job is to generate a SHORT, CLEAN, and STRUCTURED company intelligence report.
+Generate a SHORT, CLEAN, and EASY TO READ report.
 
 STRICT RULES:
-- Output must be plain text only
-- No markdown, no symbols like *, #, -, etc.
-- No emojis
-- Keep it clean and easy to read
-- Keep it concise (max 10–12 lines)
-- Do NOT dump raw data
-- Only include meaningful insights
+- Plain text only
+- Max 8–10 lines
+- No raw data
+- Beginner friendly
+- Clear and professional
 
-STRUCTURE (follow exactly):
+FORMAT:
 
 SHADOW REPORT: ${userinput}
 
 WHAT THEY ARE BUILDING:
-(2 lines max based on GitHub)
+(1–2 simple lines)
 
 HIRING SIGNALS:
-(Top roles + what they are hiring for)
+(Top roles + 1 hiring link if available)
 
 TECH STACK:
-(Detected technologies from GitHub)
+(From GitHub — only important technologies)
 
 LATEST INSIGHTS:
-(From blogs — what problems they are solving)
+(What company is currently working on)
 
 HOW TO PREPARE:
-(What user should study for interview)
+(What user should study based on their stack: ${userstackget})
 
 WHY THIS MATTERS:
-(1–2 lines explaining impact)
+(1 short line)
 
-If data is unclear, make reasonable assumptions instead of dumping raw data.
+IMPORTANT:
+- Do NOT include raw JSON
+- Summarize everything
+- Focus on clarity over detail
 
 DATA:
-GitHub: ${alldatastr}
+GitHub summary: ${orgass.name}, ${orgass.description}, ${orgass.language}
 Jobs: ${jobdata}
 Blogs: ${blogdata}
 `
