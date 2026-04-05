@@ -9,7 +9,6 @@ const cron = require('node-cron')
 const saveddata = require('./models/userdata')
 const userdata = require('./models/userdata')
 
-
 const token = process.env.BOT_TOKEN;
 
 const client = new Anthropic({
@@ -44,8 +43,320 @@ const gitone = process.env.GITHUB_TOKEN
 // ]
 
 
+async function generateAndSendReport(chatid, userinput, userstackget) {
+    try {
+
+
+        const org = userinput;
+
+
+        const getstack = await saveddata.findOne({ name: chatid })
+        if (getstack) {
+            const userstack = getstack.stack;
+            console.log(`Users Stack Language is ${userstack}`)
+
+        } else {
+            bot.sendMessage(chatid, "Not found Id of user")
+        }
+
+        const userstack = getstack.stack.toLowerCase();
+
+        // const userstackget = userstack;
+
+
+
+
+        // const stack = getstackfromid;
+        // console.log(stack)
+
+
+        const orgdata = await octokit.rest.repos.listForOrg({
+            org: org,
+
+        });
+
+        const orgdatas = orgdata.data;
+
+        const filteruserbase = orgdatas.filter(repo => {
+
+            const language = repo.language ? repo.language.toLowerCase() : "";
+            const description = repo.description ? repo.description.toLowerCase() : "";
+
+
+            return (
+                language.includes(userstackget) || description.includes(userstackget)
+            )
+
+
+        })
+
+
+
+
+        let orgass;
+
+        if (filteruserbase.length > 0) {
+            orgass = filteruserbase[0];
+        } else {
+            orgass = orgdatas[0];
+        }
+
+        // bot.sendMessage(chatid, `${orgass.name}`)
+        // bot.sendMessage(chatid,`${orgass.html_url}`)
+
+
+        const owner = orgass.owner.login;
+        const repo = orgass.name;
+        const language = orgass.language;
+        console.log(`Company Organisation Language is: ${language}`)
+        const description = orgass.description;
+        console.log(description)
+
+        const bothdata = language + description
+
+
+
+
+
+
+
+        const commitsdata = await octokit.rest.repos.listCommits({
+            owner,
+            repo
+        })
+
+        const commass = commitsdata.data[0];
+
+
+
+
+
+        //  bot.sendMessage(chatid,`${commass.commit.message}`)
+
+        const readmedata = await octokit.rest.repos.getReadme({
+            owner,
+            repo
+        })
+
+
+        const path = readmedata.data["README.md"];
+
+
+        const repoalldata = await octokit.rest.repos.getContent({
+            owner,
+            repo,
+            path,
+
+
+        })
+
+        console.log(repo)
+
+        //  console.log(repoalldata)
+
+
+
+        const alldata = { orgass, repoalldata, readmedata, commass }
+        const alldatastr = JSON.stringify(alldata)
+
+
+
+        //Job Posting Data Code
+
+        const options = {
+            method: 'GET',
+            url: 'https://jsearch.p.rapidapi.com/search',
+            params: {
+                query: `${userinput} latest tech jobs`,
+                page: '1',
+                num_pages: '1',
+                country: 'us',
+                date_posted: 'all'
+            },
+            headers: {
+                // 'x-rapidapi-key': '9a225fd3b3msh1e8df5026b6beadp1bab82jsn5898b6462e44',
+                'x-rapidapi-key': process.env.RAPIDAPI_KEY,
+                'x-rapidapi-host': 'jsearch.p.rapidapi.com',
+                'Content-Type': 'application/json'
+            }
+        };
+
+        const responsej = await axios.request(options);
+        // console.log(responsej.data);
+
+        const jobdata = JSON.stringify(responsej.data.data)
+
+        const blogdata = await axios.request(`https://dev.to/api/articles?tag=${userinput}`)
+        // console.log(blogdata)
+
+        //Generating some reports with claude
+
+        //    const message = await client.messages.create({
+        //     max_tokens: 1024,
+        //     messages: [{role: "user", content: `Generate a precise texh report on what this ${alldatastr} company github repo data gives so that user can prepare for the company better`}],
+        //     model: 'Claude-sonnet-4-5'
+        //    })
+
+        //    console.log(message.content[0].text)
+
+
+
+
+        //Generating Shadow reports with gemini
+
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+
+            // contents: `You are the Shadow Report Generator Bot You are a Company Intelligence Bot with correct data and also you provide leverage and 
+            // Your Job is to Generate , Short, Clean ,asnd structure Company intelligence Report not the ugly one 
+            // Strict Rules: 
+            //  - Output must be in Plane Text 
+            //  - Dont use much or more emojis that looks unprofessional
+            //  - Dont make reports too complicated make it understandable and begginer freindly
+            // - Do not dump raw data thats waht you will get best input
+            // - make it clean and easy to read dont make letter capitalize just do it way best and professional way
+            // -Add some important things from Raw Data like we taken repo from your stack base provided
+
+            //  Structure (Follow This Strictly): 
+
+            //  Shadow Company Report: ${userdata}
+            //   ${alldatastr} What they are Building make this Easy and understandable for begginer and if he does not open the bot just see from 
+            //  notification he can get what bot is saying thats most important and it should be short just with 1 to 2 lines not more than 
+            //  that and also usefull not random stuff 
+
+            //   Hiring Signals: ${jobdata}  Give data from this raw data about like what latest roles they are hiring and also what next they can using their ${alldatastr} 
+            //   github data that + with their correct Jobs Hiring URL's that should be correct not more than 1 or 2 and also that should be correct data 
+            //   using our raw data
+
+            //   Tech Stack used by Company: 
+            //   ${alldatastr} use this github repo data and tell what tech stack they used and how user can should apply this stack and make him
+            //   best for the company 
+
+            //   Latest Insights: 
+            //   ${blogdata} Give user the best and latest the company he given their latest blogs data that i given to you and tell him what company 
+            //   is solving right now and what he can do form this data he can also use this data to make his project according to this blog data and 
+            //   prepare his project for company so that company should also be take him seriously he get latest update about the company
+
+            //   Why this Matters: 
+            //   With this report he can get prepare for todays era what and how he should be prepare for his interviews for getting standout
+
+            //   and give him clear understandable report so that if begginer should read he gets best data and best info about company what 
+            //   company is doing right now and how his stack can get job after this data
+
+            //   and use these data: 
+            //   Github: ${alldatastr}
+            //   Job Data: ${jobdata}
+            //   Blogs Data: ${blogdata}
+
+            // `
+
+
+            contents: `
+You are Shadow — an AI Company Intelligence Assistant.
+
+Generate a SHORT, CLEAN, and EASY TO READ report.
+
+STRICT RULES:
+- Plain text only
+- Max 8–10 lines
+- No raw data
+- Beginner friendly
+- Clear and professional
+
+FORMAT:
+
+SHADOW REPORT: ${userinput}
+
+WHAT THEY ARE BUILDING:
+(1–2 simple lines)
+
+HIRING SIGNALS:
+(Top roles + 1 hiring link if available)
+
+TECH STACK:
+(From GitHub — only important technologies)
+
+LATEST INSIGHTS:
+(What company is currently working on)
+
+HOW TO PREPARE:
+(What user should study based on their stack: ${userstackget})
+
+WHY THIS MATTERS:
+(1 short line)
+
+IMPORTANT:
+- Do NOT include raw JSON
+- Summarize everything
+- Focus on clarity over detail
+
+DATA:
+GitHub summary: ${orgass.name}, ${orgass.description}, ${orgass.language}
+Jobs: ${jobdata}
+Blogs: ${blogdata}
+`
+        })
+
+        // console.log(response.text)
+
+
+        const aireport = response.text;
+
+
+
+
+
+
+        //DB Data Cache
+
+        const usercheck = await saveddata.findOne({ name: chatid })
+        if (usercheck) {
+            // usercheck.name = chatid
+            // usercheck.save();
+
+            usercheck.userinput = userinput,
+                usercheck.alldatastr = alldatastr,
+                usercheck.aireport = aireport,
+                usercheck.stack = userstackget,
+                usercheck.trackedcompany = userinput,
+                usercheck.lastgeneratedat = new Date(),
+                usercheck.scheduling = false,
+
+
+                await usercheck.save();
+
+        } else {
+            const newuserdata = new saveddata({
+                name: chatid,
+                userinput: userinput,
+                alldatastr: alldatastr,
+                aireport: aireport,
+                stack: userstackget,
+                trackedcompany: userinput,
+                lastgeneratedat: new Date(),
+                scheduling: false,
+
+
+            })
+
+            await newuserdata.save()
+
+        }
+
+
+        return aireport
+
+    } catch (err) {
+        console.log("Error in generating reports")
+        return null
+    }
+}
+
+
+
 const Startinglins = [
-`Shadow — AI Company Intelligence Bot
+    `Shadow — AI Company Intelligence Bot
 
 Get real insights about any company before interviews.
 
@@ -58,7 +369,7 @@ What you get:
 Start by tracking a company:
 /track <company name>`,
 
-`Welcome to Shadow.
+    `Welcome to Shadow.
 
 This bot helps you understand companies using real data from GitHub, hiring signals, and tech blogs.
 
@@ -67,7 +378,7 @@ You’ll get a short, structured report to help you prepare smarter.
 Try now:
 /track <company name>`,
 
-`Shadow is ready.
+    `Shadow is ready.
 
 Stop guessing interview questions.
 Start preparing with real company intelligence.
@@ -89,9 +400,43 @@ bot.onText(/\/start/, async (msg, match) => {
 
 
 
+bot.onText(/\/set_stack (.+)/, async (msg, match) => {
+    const chatid = msg.chat.id;
+    const userstack = match[1];
+
+
+    const userstackfind = await saveddata.findOne({ name: chatid })
+    if (userstackfind) {
+        userstackfind.stack = userstack;
+        await userstackfind.save();
+
+
+
+    } else {
+        const mewstack = new saveddata({
+            name: chatid,
+            stack: userstack,
+
+        })
+        await mewstack.save()
+    }
+
+
+
+    bot.sendMessage(chatid, `${userstack} Great now shadow will give report according to your stack`)
+    bot.sendMessage(chatid, "Just Type /track <companyName>")
+
+
+})
+
+
 bot.onText(/\/track (.+)/, async (msg, match) => {
     const chatid = msg.chat.id;
     const userinput = match[1];
+
+
+    const userdata = await saveddata.findOne({ name: chatid })
+
 
 
 
@@ -136,7 +481,7 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
                 chat_id: chatid,
                 message_id: sent.message_id
             })
-        }, 5000)
+        }, 10000)
         setTimeout(() => {
             bot.sendChatAction(chatid, "typing")
             bot.editMessageText(`🧠 Synthesizing intelligence and generating your personalized report...`, {
@@ -149,309 +494,41 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
 
 
 
+
+
+
+
     })
 
 
 
 
-    const org = userinput;
 
+    const userstackget = userdata.stack.toLowerCase()
+    const aireport = await generateAndSendReport(chatid, userinput, userstackget)
 
-    const getstack = await saveddata.findOne({ name: chatid })
-    if (getstack) {
-        const userstack = getstack.stack;
-        console.log(`Users Stack Language is ${userstack}`)
-
+    if (!aireport) {
+        bot.sendMessage(chatid, "Error Generating report")
     } else {
-        bot.sendMessage(chatid, "Not found Id of user")
-    }
-
-    const userstack = getstack.stack.toLowerCase();
-
-    const userstackget = userstack;
-
-
-
-
-    // const stack = getstackfromid;
-    // console.log(stack)
-
-
-    const orgdata = await octokit.rest.repos.listForOrg({
-        org: org,
-
-    });
-
-    const orgdatas = orgdata.data;
-
-    const filteruserbase = orgdatas.filter(repo => {
-
-        const language = repo.language ? repo.language.toLowerCase() : "";
-        const description = repo.description ? repo.description.toLowerCase() : "";
-
-
-        return (
-            language.includes(userstackget) || description.includes(userstackget)
-        )
-
-
-    })
-
-
-
-
-    let orgass;
-
-    if (filteruserbase.length > 0) {
-        orgass = filteruserbase[0];
-    } else {
-        orgass = orgdatas[0];
-    }
-
-    // bot.sendMessage(chatid, `${orgass.name}`)
-    // bot.sendMessage(chatid,`${orgass.html_url}`)
-
-
-    const owner = orgass.owner.login;
-    const repo = orgass.name;
-    const language = orgass.language;
-    console.log(`Company Organisation Language is: ${language}`)
-    const description = orgass.description;
-    console.log(description)
-
-    const bothdata = language + description
-
-
-
-
-
-
-
-    const commitsdata = await octokit.rest.repos.listCommits({
-        owner,
-        repo
-    })
-
-    const commass = commitsdata.data[0];
-
-
-
-
-
-    //  bot.sendMessage(chatid,`${commass.commit.message}`)
-
-    const readmedata = await octokit.rest.repos.getReadme({
-        owner,
-        repo
-    })
-
-
-    const path = readmedata.data["README.md"];
-
-
-    const repoalldata = await octokit.rest.repos.getContent({
-        owner,
-        repo,
-        path,
-
-
-    })
-
-    console.log(repo)
-
-    //  console.log(repoalldata)
-
-
-
-    const alldata = { orgass, repoalldata, readmedata, commass }
-    const alldatastr = JSON.stringify(alldata)
-
-    //checking every hours data
-
-
-
-    // const key = `${userinput}_${chatid}`
-
-    // trackedcompanies[key] = {
-    //     chatid: chatid,
-
-    // }
-
-
-
-
-
-    //Job Posting Data Code
-
-    const options = {
-        method: 'GET',
-        url: 'https://jsearch.p.rapidapi.com/search',
-        params: {
-            query: `${userinput} latest tech jobs`,
-            page: '1',
-            num_pages: '1',
-            country: 'us',
-            date_posted: 'all'
-        },
-        headers: {
-            // 'x-rapidapi-key': '9a225fd3b3msh1e8df5026b6beadp1bab82jsn5898b6462e44',
-            'x-rapidapi-key': process.env.RAPIDAPI_KEY,
-            'x-rapidapi-host': 'jsearch.p.rapidapi.com',
-            'Content-Type': 'application/json'
-        }
-    };
-
-    const responsej = await axios.request(options);
-    // console.log(responsej.data);
-
-    const jobdata = JSON.stringify(responsej.data.data)
-
-    const blogdata = await axios.request(`https://dev.to/api/articles?tag=${userinput}`)
-    // console.log(blogdata)
-
-    //Generating some reports with claude
-
-    //    const message = await client.messages.create({
-    //     max_tokens: 1024,
-    //     messages: [{role: "user", content: `Generate a precise texh report on what this ${alldatastr} company github repo data gives so that user can prepare for the company better`}],
-    //     model: 'Claude-sonnet-4-5'
-    //    })
-
-    //    console.log(message.content[0].text)
-
-
-
-
-    //Generating Shadow reports with gemini
-
-
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-
-        // contents: `You are the Shadow Report Generator Bot You are a Company Intelligence Bot with correct data and also you provide leverage and 
-        // Your Job is to Generate , Short, Clean ,asnd structure Company intelligence Report not the ugly one 
-        // Strict Rules: 
-        //  - Output must be in Plane Text 
-        //  - Dont use much or more emojis that looks unprofessional
-        //  - Dont make reports too complicated make it understandable and begginer freindly
-        // - Do not dump raw data thats waht you will get best input
-        // - make it clean and easy to read dont make letter capitalize just do it way best and professional way
-        // -Add some important things from Raw Data like we taken repo from your stack base provided
-
-        //  Structure (Follow This Strictly): 
-
-        //  Shadow Company Report: ${userdata}
-        //   ${alldatastr} What they are Building make this Easy and understandable for begginer and if he does not open the bot just see from 
-        //  notification he can get what bot is saying thats most important and it should be short just with 1 to 2 lines not more than 
-        //  that and also usefull not random stuff 
-
-        //   Hiring Signals: ${jobdata}  Give data from this raw data about like what latest roles they are hiring and also what next they can using their ${alldatastr} 
-        //   github data that + with their correct Jobs Hiring URL's that should be correct not more than 1 or 2 and also that should be correct data 
-        //   using our raw data
-
-        //   Tech Stack used by Company: 
-        //   ${alldatastr} use this github repo data and tell what tech stack they used and how user can should apply this stack and make him
-        //   best for the company 
-
-        //   Latest Insights: 
-        //   ${blogdata} Give user the best and latest the company he given their latest blogs data that i given to you and tell him what company 
-        //   is solving right now and what he can do form this data he can also use this data to make his project according to this blog data and 
-        //   prepare his project for company so that company should also be take him seriously he get latest update about the company
-
-        //   Why this Matters: 
-        //   With this report he can get prepare for todays era what and how he should be prepare for his interviews for getting standout
-
-        //   and give him clear understandable report so that if begginer should read he gets best data and best info about company what 
-        //   company is doing right now and how his stack can get job after this data
-
-        //   and use these data: 
-        //   Github: ${alldatastr}
-        //   Job Data: ${jobdata}
-        //   Blogs Data: ${blogdata}
-
-        // `
-
-
-        contents: `
-You are Shadow — an AI Company Intelligence Assistant.
-
-Generate a SHORT, CLEAN, and EASY TO READ report.
-
-STRICT RULES:
-- Plain text only
-- Max 8–10 lines
-- No raw data
-- Beginner friendly
-- Clear and professional
-
-FORMAT:
-
-SHADOW REPORT: ${userinput}
-
-WHAT THEY ARE BUILDING:
-(1–2 simple lines)
-
-HIRING SIGNALS:
-(Top roles + 1 hiring link if available)
-
-TECH STACK:
-(From GitHub — only important technologies)
-
-LATEST INSIGHTS:
-(What company is currently working on)
-
-HOW TO PREPARE:
-(What user should study based on their stack: ${userstackget})
-
-WHY THIS MATTERS:
-(1 short line)
-
-IMPORTANT:
-- Do NOT include raw JSON
-- Summarize everything
-- Focus on clarity over detail
-
-DATA:
-GitHub summary: ${orgass.name}, ${orgass.description}, ${orgass.language}
-Jobs: ${jobdata}
-Blogs: ${blogdata}
-`
-    })
-
-    // console.log(response.text)
-
-
-    bot.sendMessage(chatid, response.text)
-
-
-
-})
-
-
-bot.onText(/\/set_stack (.+)/, async (msg, match) => {
-    const chatid = msg.chat.id;
-    const userstack = match[1];
-
-
-    const userstackfind = await saveddata.findOne({ name: chatid })
-    if (userstackfind) {
-        userstackfind.stack = userstack;
-        await userstackfind.save();
-
-
-
-    } else {
-        const mewstack = new saveddata({
-            name: chatid,
-            stack: userstack
+        bot.sendMessage(chatid, aireport)
+        bot.sendMessage(chatid, `Wanted Every New Report of ${userinput} at every 9 AM`, {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: "Yes", callback_data: `schedule_true_${userinput}` }],
+                    [{ text: "No", callback_data: "schedule_false" }]
+                ]
+            }
         })
-        await mewstack.save()
+
     }
 
 
 
-    bot.sendMessage(chatid, `${userstack} Great now shadow will give report according to your stack`)
-    bot.sendMessage(chatid, "Just Type /track <companyName>")
+
+
+
+
+
 
 
 })
@@ -459,21 +536,110 @@ bot.onText(/\/set_stack (.+)/, async (msg, match) => {
 
 
 
-cron.schedule('* 30 8 * * *', () => {
-    for (const key in trackedcompanies) {
-        const saved = trackedcompanies[key]
+bot.on("callback_query", async (query) => {
+    const chatid = query.message.chat.id;
+    if (query.data.startsWith("schedule_true_")) {
+        const company = query.data.replace("schedule_true", "")
+        const user = await saveddata.findOne({ name: chatid })
+        if (user) {
+            user.scheduling = true
+            user.trackedcompany = company,
+                await user.save()
+        }
+        bot.answerCallbackQuery(query.id, {
+            text: "Done Bot will send a new report at every 9 AM"
 
+        })
+        bot.pinChatMessage(chatid, query.message_id)
+
+    } else if (query.data === "schedule_false") {
+        const user = await saveddata.findOne({ name: chatid })
+        if (user) {
+            user.scheduling = false
+            await user.save();
+        }
+        bot.answerCallbackQuery(query.id, {
+            text: "No problem we will not send any report if want a report just type /track"
+        })
     }
-    bot.sendMessage(saved.chatid, "Hello from schedule")
-
 })
 
 
 
+cron.schedule('25 13 * * *', async () => {
+    const scheduleusers = await saveddata.find({ scheduling: true })
+
+    for (const users of scheduleusers) {
+        if (!users.trackedcompany || !users.stack) continue
+        await generateAndSendReport(users.name, users.trackedcompany, users.stack.toLowerCase())
+        bot.sendMessage(chatid, aireport)
+    }
+})
+
+bot.onText(/\/latestreport (.+)/, async (msg, match) => {
+    const chatid = msg.chat.id;
+    const userinput = match[1];
+    const userdata = await saveddata.findOne({ name: chatid })
 
 
+    const sixhours = 6 * 60 * 60 * 1000
+    const now = new Date()
+
+    if (userdata.aireport && userdata.trackedcompany == userinput && userdata.lastgeneratedat && (now - new Date(userdata.lastgeneratedat)) < sixhours) {
+        bot.sendMessage(chatid, `The lastest report of ${userinput}`)
+        bot.sendMessage(chatid, userdata.aireport)
+        return
+    } else {
+        bot.sendMessage(chatid, "Timed our Generating new Report")
+
+    }
+
+
+})
+
+
+bot.onText(/\/status/, async (msg) => {
+    const chatid = msg.chat.id;
+    const getuserdata = await saveddata.findOne({ name: chatid })
+
+    if (!getuserdata) {
+        bot.sendMessage(chatid, "No data Found first /track")
+        return
+    }
+
+    const sent = bot.sendMessage(chatid, `<b> ${getuserdata.trackedcompany} </b>`, {
+        parse_mode: 'HTML'
+    })
+
+    const pinned = bot.pinChatMessage(chatid, (await sent).message_id)
+    if (pinned === true) {
+        bot.unpinAllChatMessages(chatid, sent.message_id)
+    } else {
+        bot.pinChatMessage(chatid, (await sent).message_id)
+    }
+
+})
+
+bot.onText(/\/help/, async (msg) => {
+    const chatid = msg.chat.id;
+    bot.sendMessage(chatid, `<b> Bot Commands </b> \n <b>/start </b> \n <b>/track </b> \n <b>/set_stack </b> \n <b>/latestreport </b> \n <b>/status </b> \n <b>/report</b>`, {
+        parse_mode: 'HTML'
+    })
+})
+
+bot.onText(/\/report/, async (msg) => {
+    const chatid = msg.chat.id;
+
+    const prevreport = await saveddata.findOne({ name: chatid })
+    if (!prevreport) {
+        bot.sendMessage(chatid, "No data found first /track")
+    }
+    const newreport = await generateAndSendReport(chatid, prevreport.trackedcompany, prevreport.stack.toLowerCase())
+    bot.sendMessage(chatid, newreport)
+})
 
 bot.on("message", async (msg) => {
+    if (!msg.text) return
     if (msg.text.startsWith("/")) return;
     const chatid = msg.chat.id;
 
@@ -482,4 +648,6 @@ bot.on("message", async (msg) => {
     console.log("We recieved user input")
     console.log("Send to ai so that we can start process")
     bot.sendMessage(chatid, `You Said ${userinput}`)
+
+
 })
