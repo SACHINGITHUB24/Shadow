@@ -8,6 +8,7 @@ const { GoogleGenAI } = require('@google/genai')
 const cron = require('node-cron')
 const saveddata = require('./models/userdata')
 const userdata = require('./models/userdata')
+const { parse } = require('dotenv')
 
 const token = process.env.BOT_TOKEN;
 
@@ -158,7 +159,9 @@ async function generateAndSendReport(chatid, userinput, userstackget) {
 
         const alldata = { orgass, repoalldata, readmedata, commass }
         const alldatastr = JSON.stringify(alldata)
+          
 
+        console.log(alldatastr)
 
 
         //Job Posting Data Code
@@ -637,6 +640,349 @@ bot.onText(/\/report/, async (msg) => {
     const newreport = await generateAndSendReport(chatid, prevreport.trackedcompany, prevreport.stack.toLowerCase())
     bot.sendMessage(chatid, newreport)
 })
+
+// /mock with Shadow Mock Question Engine Just see what I do.....
+
+
+bot.onText(/\/mock (.+)/, async (msg, match) => {
+    const chatid = msg.chat.id;
+    const userinput = match[1];
+
+    bot.sendMessage(chatid, "Welcome to Mock By Shadow ready to prepare according to Company Specific Way")
+    bot.sendMessage(chatid, `Getting Ready for giving you interview questions on based on ${userinput} Activities`).then((sent) => {
+        setTimeout(() => {
+            bot.sendChatAction(chatid, "typing")
+            bot.editMessageText(`Checking ${userinput} latest activities`, {
+                chat_id: chatid,
+                message_id: sent.message_id
+            })
+        }, 1000)
+        setTimeout(() => {
+            bot.sendChatAction(chatid, "typing")
+            bot.editMessageText(`Gathering Info of ${userinput} from Github and other platforms`, {
+                chat_id: chatid,
+                message_id: sent.message_id
+            })
+        }, 2000)
+        setTimeout(() => {
+            bot.sendChatAction(chatid, "typing")
+            bot.editMessageText(`Checking data and Generating Question Please Wait..`, {
+                chat_id: chatid,
+                message_id: sent.message_id
+            })
+        }, 3000)
+        setTimeout(() => {
+            bot.sendChatAction(chatid, "typing")
+            bot.editMessageText(`Just Polishing Questions and Making them in Format`, {
+                chat_id: chatid,
+                message_id: sent.message_id
+            })
+        }, 4000)
+
+          
+    })
+
+     const org = userinput;
+        const userdbdatastored = await saveddata.findOne({ name: chatid })
+        const mockorg = await octokit.rest.repos.listForOrg({
+            org: org,
+        })
+
+        const mockorgdata = mockorg.data;
+
+        const filtermockbase = mockorgdata.filter(repo => {
+            const language = repo.language ? repo.language.toLowerCase() : "";
+            const description = repo.description ? repo.description.toLowerCase() : "";
+
+            return (
+                language.includes(userdbdatastored.stack) || description.includes(userdbdatastored.stack)
+            )
+        })
+
+        let mockorgass;
+
+        if (filtermockbase.length > 0) {
+            mockorgass = filtermockbase[0];
+        } else {
+            mockorgass = mockorgdata[0];
+        }
+
+        // bot.sendMessage(chatid, `${orgass.name}`)
+        // bot.sendMessage(chatid,`${orgass.html_url}`)
+
+
+        const owner = mockorgass.owner.login;
+        const repo = mockorgass.name;
+        const language = mockorgass.language;
+        console.log(`Company Organisation Language is: ${language}`)
+        const description = mockorgass.description;
+        console.log(description)
+
+        const bothdata = language + description
+
+
+
+
+
+
+
+        const mockcommitsdata = await octokit.rest.repos.listCommits({
+            owner,
+            repo
+        })
+
+        const mockcommass = mockcommitsdata.data[0];
+
+
+
+
+
+        //  bot.sendMessage(chatid,`${commass.commit.message}`)
+
+        const mockreadmedata = await octokit.rest.repos.getReadme({
+            owner,
+            repo
+        })
+
+
+        const path = mockreadmedata.data["README.md"];
+
+
+        const mockrepoalldata = await octokit.rest.repos.getContent({
+            owner,
+            repo,
+            path,
+
+
+        })
+
+        console.log(repo)
+
+        //  console.log(repoalldata)
+
+
+
+        const mockalldata = { mockorgass, mockrepoalldata, mockreadmedata, mockcommass }
+        const mockalldatastr = JSON.stringify(mockalldata)
+
+
+
+        //Job Posting Data Code
+
+        const options = {
+            method: 'GET',
+            url: 'https://jsearch.p.rapidapi.com/search',
+            params: {
+                query: `${userinput} latest tech jobs`,
+                page: '1',
+                num_pages: '1',
+                country: 'us',
+                date_posted: 'all'
+            },
+            headers: {
+                // 'x-rapidapi-key': '9a225fd3b3msh1e8df5026b6beadp1bab82jsn5898b6462e44',
+                'x-rapidapi-key': process.env.RAPIDAPI_KEY,
+                'x-rapidapi-host': 'jsearch.p.rapidapi.com',
+                'Content-Type': 'application/json'
+            }
+        };
+
+        const responsej = await axios.request(options);
+        // const jobdata = JSON.stringify(responsej.data.data)
+        
+
+
+        //Loop to get salary and titles
+
+        const alljobdata = responsej.data.data;
+
+
+    // const classifyquestion2 = (title) => {
+    //     const t2 = title.toLowerCase();
+
+    //     if(t2.includes("backend")){
+    //         return "system design"
+    //     }else if(t2.includes("frontend")){
+    //         return "performance"
+
+    //     }else if(t2.includes("data")){
+    //         return "pipeline"
+    //     }else if(t2.includes("ai")){
+    //         return "data based"
+    //     }else{
+    //         return "general based"
+    //     }
+    // }
+
+
+    // const getstring = classifyquestion2.toString();
+    //   const alljobdataloop = alljobdata.map((job, index) => {
+    //         const title = job.job_title;
+
+    //         const salary = job.job_salary || (job.job_min_salary && job.job_max_salary ? `${job.job_min_salary - job.job_max_salary}`: "Not Disclosed");
+
+    //     console.log(`${index + 1}, ${title} -> ${salary}`)
+
+    //     // const category = classifyjob(title);
+
+    //     // return (
+    //     //     title,
+    //     //     salary,
+    //     //     category
+    //     // )
+
+    //     const category = classifyquestion2(title);
+
+    //     return {
+    //         title:title,
+    //         salary: salary,
+    //         category: category
+        
+    //     }
+    
+            
+    //     });
+
+    //     console.log(alljobdataloop)
+
+        
+
+
+    const alljobdataapi  = (title) => {
+        const t = title.toLowerCase();
+
+        if(t.includes("backend")){
+            return "system design"
+        }else if(t.includes("frontend")){
+            return "performance based"
+        }else if(t.includes("data")){
+            return "data pipeline"
+        }else if(t.includes("ai")){
+            return "ai based"
+        }else{
+            return "general based"
+        }
+    }
+         
+    console.log(alljobdataapi)
+
+
+    const getdet = alljobdata.map((job,index) => {
+        const title = job.job_title;
+
+        const salary = job.job_salary || (job.job_min_salary && job.job_max_salary ? `${job.job_min_salary - job.job_max_salary}`: "Not Disclosed");
+
+        console.log(`${index + 1},${title} -> ${salary}`)
+
+        const category = alljobdataapi(title);
+
+        return {
+            title: title,
+            salary: salary,
+            category: category
+        }
+    })
+
+    console.log(getdet)
+
+        const blogdata = await axios.request(`https://dev.to/api/articles?tag=${userinput}`)
+
+  
+
+    //    console.log(mockcommass.commit.message)
+    //   console.log(language)
+    //   console.log(description)
+   
+     const mockcomassone = mockcommass.commit.message;
+      const githubdata = {mockcomassone, language, description}
+  
+
+    //   console.log(blogdata.data[3])
+    //   console.log(blogdata.data[25])
+    //   console.log(blogdata.data[26])
+
+
+    //   const blogone = blogdata.data[3]
+    //   const blogtwo = blogdata.data[25]
+    //   const blogthree = blogdata.data[26]
+    //   const allblogdata = {blogone, blogtwo, blogthree}
+
+
+    //   const alljobdataone =alljobdataloop;
+    //   const allmockdata = {githubdata, allblogdata,alljobdataone}
+
+//    const checkingdatafromai = await ai.models.generateContent({
+//     model: 'gemini-2.5-flash',
+//     contents: `${allmockdata} this is all data from github , jobs data , and blogs data I wanted one data like I wanted to know what title will fit which job role like if 
+//     fullstack will be like their job data says full stack developer like this give me in one or word so that it could not be messy it should be clean i need data becasue I need to use`
+//    })
+       
+
+//    const mockresponse = checkingdatafromai.text;
+
+//    bot.sendMessage(chatid, mockresponse)
+      
+
+
+//Question Title checking Function code
+
+
+   
+    
+       
+
+
+    //   const generatequestiontemplates = 
+    //     `${userinput} is currently ${mockalldatastr} their github shows and their activity on github.Their Scale to job postings are
+    //     ${jobdata}, Design a System according to their activity in latest like ${blogdata}`
+      
+
+    //   const savetemplate = generatequestiontemplates;
+
+    //   const mockresponse = await ai.models.generateContent({
+    //     model: 'gemini-2.5-flash',
+    //   })
+
+    //   const getquestion = mockresponse.text;
+    //   bot.sendMessage(chatid,savetemplate);
+
+
+    
+
+    const classifyingfromdatatotemplate = getdet;
+
+    const combinecontext = classifyingfromdatatotemplate.map((item) => {
+        
+        if(item.category==="system design"){
+            const template = `Design a Scalable system according to ${repo} builds using ${language} how ${repo} says and make it short and ${description}`
+            return {template: template}
+        }else if(item.category==="performance based"){
+            const template = `Design a Scalable performance based script according to ${repo} builds using ${language} how ${repo} says and make it short and ${description}`
+           return {template: template}
+        }else if(item.category==="data pipeline"){
+            const template = `Design a Scalable data pipeline according to ${repo} builds using ${language} how ${repo} says and make it short and ${description}`
+           return {template: template}
+        }else if(item.category==="ai based"){
+            const template = `Design a Scalable ai based script according to ${repo} builds using ${language} how ${repo} says and make it short and ${description}`
+            return {template: template}
+        }else if(item.category==="general based"){
+            const template = `Design a Scalable general based pipeline according to builds using ${language} how ${repo} says and make it short and ${description}`
+           return {template: template}
+        }else{
+            const template = `Didn't get any data try again with other repo`
+            return {template: template}
+        }
+    })
+
+
+    const finalquestion = combinecontext;
+    console.log(finalquestion[0].template)
+    
+    bot.sendMessage(chatid, finalquestion[0].template)
+    
+})
+
+
 
 bot.on("message", async (msg) => {
     if (!msg.text) return
