@@ -16,7 +16,7 @@ const client = new Anthropic({
     apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY2;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY5;
 
 const ai = new GoogleGenAI({
     apiKey: GEMINI_API_KEY
@@ -37,12 +37,6 @@ const octokit = new Octokit({
 
 const gitone = process.env.GITHUB_TOKEN
 
-// const Startinglins = [
-//     `🕵️ Welcome to Shadow. \n I watch. I listen. I report.Tell me which company you want to target and I will become your eyes inside their world.Send /track to begin.`,
-//     "👤 Shadow — Company Intelligence System You are now connected.I silently monitor your target companies and deliver everything you need to know before walking into that interview.Send /track <company name> to start surveillance.",
-//     "🌑 Shadow is online.No more blind applications.No more unprepared interviews.Who are we watching first? Send /track <company name>"
-// ]
-
 
 async function generateAndSendReport(chatid, userinput, userstackget) {
     try {
@@ -62,15 +56,7 @@ async function generateAndSendReport(chatid, userinput, userstackget) {
 
         const userstack = getstack.stack.toLowerCase();
 
-        // const userstackget = userstack;
-
-
-
-
-        // const stack = getstackfromid;
-        // console.log(stack)
-
-
+   
         const orgdata = await octokit.rest.repos.listForOrg({
             org: org,
 
@@ -102,10 +88,7 @@ async function generateAndSendReport(chatid, userinput, userstackget) {
             orgass = orgdatas[0];
         }
 
-        // bot.sendMessage(chatid, `${orgass.name}`)
-        // bot.sendMessage(chatid,`${orgass.html_url}`)
-
-
+  
         const owner = orgass.owner.login;
         const repo = orgass.name;
         const language = orgass.language;
@@ -132,8 +115,6 @@ async function generateAndSendReport(chatid, userinput, userstackget) {
 
 
 
-        //  bot.sendMessage(chatid,`${commass.commit.message}`)
-
         const readmedata = await octokit.rest.repos.getReadme({
             owner,
             repo
@@ -153,9 +134,7 @@ async function generateAndSendReport(chatid, userinput, userstackget) {
 
         console.log(repo)
 
-        //  console.log(repoalldata)
-
-
+      
 
         const alldata = { orgass, repoalldata, readmedata, commass }
         const alldatastr = JSON.stringify(alldata)
@@ -177,31 +156,19 @@ async function generateAndSendReport(chatid, userinput, userstackget) {
                 date_posted: 'all'
             },
             headers: {
-                // 'x-rapidapi-key': '9a225fd3b3msh1e8df5026b6beadp1bab82jsn5898b6462e44',
-                'x-rapidapi-key': process.env.RAPIDAPI_KEY,
+                
+                'x-rapidapi-key': process.env.RAPIDAPI_KEY2,
                 'x-rapidapi-host': 'jsearch.p.rapidapi.com',
                 'Content-Type': 'application/json'
             }
         };
 
         const responsej = await axios.request(options);
-        // console.log(responsej.data);
-
+  
         const jobdata = JSON.stringify(responsej.data.data)
 
         const blogdata = await axios.request(`https://dev.to/api/articles?tag=${userinput}`)
-        // console.log(blogdata)
-
-        //Generating some reports with claude
-
-        //    const message = await client.messages.create({
-        //     max_tokens: 1024,
-        //     messages: [{role: "user", content: `Generate a precise texh report on what this ${alldatastr} company github repo data gives so that user can prepare for the company better`}],
-        //     model: 'Claude-sonnet-4-5'
-        //    })
-
-        //    console.log(message.content[0].text)
-
+      
 
 
 
@@ -211,49 +178,7 @@ async function generateAndSendReport(chatid, userinput, userstackget) {
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
 
-            // contents: `You are the Shadow Report Generator Bot You are a Company Intelligence Bot with correct data and also you provide leverage and 
-            // Your Job is to Generate , Short, Clean ,asnd structure Company intelligence Report not the ugly one 
-            // Strict Rules: 
-            //  - Output must be in Plane Text 
-            //  - Dont use much or more emojis that looks unprofessional
-            //  - Dont make reports too complicated make it understandable and begginer freindly
-            // - Do not dump raw data thats waht you will get best input
-            // - make it clean and easy to read dont make letter capitalize just do it way best and professional way
-            // -Add some important things from Raw Data like we taken repo from your stack base provided
-
-            //  Structure (Follow This Strictly): 
-
-            //  Shadow Company Report: ${userdata}
-            //   ${alldatastr} What they are Building make this Easy and understandable for begginer and if he does not open the bot just see from 
-            //  notification he can get what bot is saying thats most important and it should be short just with 1 to 2 lines not more than 
-            //  that and also usefull not random stuff 
-
-            //   Hiring Signals: ${jobdata}  Give data from this raw data about like what latest roles they are hiring and also what next they can using their ${alldatastr} 
-            //   github data that + with their correct Jobs Hiring URL's that should be correct not more than 1 or 2 and also that should be correct data 
-            //   using our raw data
-
-            //   Tech Stack used by Company: 
-            //   ${alldatastr} use this github repo data and tell what tech stack they used and how user can should apply this stack and make him
-            //   best for the company 
-
-            //   Latest Insights: 
-            //   ${blogdata} Give user the best and latest the company he given their latest blogs data that i given to you and tell him what company 
-            //   is solving right now and what he can do form this data he can also use this data to make his project according to this blog data and 
-            //   prepare his project for company so that company should also be take him seriously he get latest update about the company
-
-            //   Why this Matters: 
-            //   With this report he can get prepare for todays era what and how he should be prepare for his interviews for getting standout
-
-            //   and give him clear understandable report so that if begginer should read he gets best data and best info about company what 
-            //   company is doing right now and how his stack can get job after this data
-
-            //   and use these data: 
-            //   Github: ${alldatastr}
-            //   Job Data: ${jobdata}
-            //   Blogs Data: ${blogdata}
-
-            // `
-
+           
 
             contents: `
 You are Shadow — an AI Company Intelligence Assistant.
@@ -301,8 +226,7 @@ Blogs: ${blogdata}
 `
         })
 
-        // console.log(response.text)
-
+      
 
         const aireport = response.text;
 
@@ -315,9 +239,7 @@ Blogs: ${blogdata}
 
         const usercheck = await saveddata.findOne({ name: chatid })
         if (usercheck) {
-            // usercheck.name = chatid
-            // usercheck.save();
-
+          
             usercheck.userinput = userinput,
                 usercheck.alldatastr = alldatastr,
                 usercheck.aireport = aireport,
@@ -352,6 +274,7 @@ Blogs: ${blogdata}
 
     } catch (err) {
         console.log("Error in generating reports")
+        console.log(err)
         return null
     }
 }
@@ -539,43 +462,19 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
 
 
 
-bot.on("callback_query", async (query) => {
-    const chatid = query.message.chat.id;
-    if (query.data.startsWith("schedule_true_")) {
-        const company = query.data.replace("schedule_true", "")
-        const user = await saveddata.findOne({ name: chatid })
-        if (user) {
-            user.scheduling = true
-            user.trackedcompany = company,
-                await user.save()
-        }
-        bot.answerCallbackQuery(query.id, {
-            text: "Done Bot will send a new report at every 9 AM"
-
-        })
-        bot.pinChatMessage(chatid, query.message_id)
-
-    } else if (query.data === "schedule_false") {
-        const user = await saveddata.findOne({ name: chatid })
-        if (user) {
-            user.scheduling = false
-            await user.save();
-        }
-        bot.answerCallbackQuery(query.id, {
-            text: "No problem we will not send any report if want a report just type /track"
-        })
-    }
-})
 
 
 
-cron.schedule('25 13 * * *', async () => {
+
+cron.schedule('0 9 * * *', async () => {
     const scheduleusers = await saveddata.find({ scheduling: true })
-
+   
     for (const users of scheduleusers) {
         if (!users.trackedcompany || !users.stack) continue
-        await generateAndSendReport(users.name, users.trackedcompany, users.stack.toLowerCase())
-        bot.sendMessage(chatid, aireport)
+        const aireport = await generateAndSendReport(users.name, users.trackedcompany, users.stack.toLowerCase())
+        const chatid = users.name;
+        
+        bot.sendMessage(chatid,aireport)
     }
 })
 
@@ -625,7 +524,7 @@ bot.onText(/\/status/, async (msg) => {
 
 bot.onText(/\/help/, async (msg) => {
     const chatid = msg.chat.id;
-    bot.sendMessage(chatid, `<b> Bot Commands </b> \n <b>/start </b> \n <b>/track </b> \n <b>/set_stack </b> \n <b>/latestreport </b> \n <b>/status </b> \n <b>/report</b>`, {
+    bot.sendMessage(chatid, `<b> Bot Commands </b> \n <b>/start </b> \n <b>/track +companyname </b> \n <b>/set_stack </b> \n <b>/latestreport +previouscompanyname </b> \n <b>/status </b> \n <b>/report</b> \n <b>/interview +companyname </b> \n <b>/mock +companyname </b> \n\n <strong>Enjoy Shadow </strong>`, {
         parse_mode: 'HTML'
     })
 })
@@ -707,9 +606,7 @@ bot.onText(/\/mock (.+)/, async (msg, match) => {
             mockorgass = mockorgdata[0];
         }
 
-        // bot.sendMessage(chatid, `${orgass.name}`)
-        // bot.sendMessage(chatid,`${orgass.html_url}`)
-
+      
 
         const owner = mockorgass.owner.login;
         const repo = mockorgass.name;
@@ -732,12 +629,10 @@ bot.onText(/\/mock (.+)/, async (msg, match) => {
         })
 
         const mockcommass = mockcommitsdata.data[0];
+          
 
 
 
-
-
-        //  bot.sendMessage(chatid,`${commass.commit.message}`)
 
         const mockreadmedata = await octokit.rest.repos.getReadme({
             owner,
@@ -757,8 +652,6 @@ bot.onText(/\/mock (.+)/, async (msg, match) => {
         })
 
         console.log(repo)
-
-        //  console.log(repoalldata)
 
 
 
@@ -780,72 +673,21 @@ bot.onText(/\/mock (.+)/, async (msg, match) => {
                 date_posted: 'all'
             },
             headers: {
-                // 'x-rapidapi-key': '9a225fd3b3msh1e8df5026b6beadp1bab82jsn5898b6462e44',
-                'x-rapidapi-key': process.env.RAPIDAPI_KEY,
+             
+                'x-rapidapi-key': process.env.RAPIDAPI_KEY2,
                 'x-rapidapi-host': 'jsearch.p.rapidapi.com',
                 'Content-Type': 'application/json'
             }
         };
 
         const responsej = await axios.request(options);
-        // const jobdata = JSON.stringify(responsej.data.data)
-        
-
+       
 
         //Loop to get salary and titles
 
         const alljobdata = responsej.data.data;
 
 
-    // const classifyquestion2 = (title) => {
-    //     const t2 = title.toLowerCase();
-
-    //     if(t2.includes("backend")){
-    //         return "system design"
-    //     }else if(t2.includes("frontend")){
-    //         return "performance"
-
-    //     }else if(t2.includes("data")){
-    //         return "pipeline"
-    //     }else if(t2.includes("ai")){
-    //         return "data based"
-    //     }else{
-    //         return "general based"
-    //     }
-    // }
-
-
-    // const getstring = classifyquestion2.toString();
-    //   const alljobdataloop = alljobdata.map((job, index) => {
-    //         const title = job.job_title;
-
-    //         const salary = job.job_salary || (job.job_min_salary && job.job_max_salary ? `${job.job_min_salary - job.job_max_salary}`: "Not Disclosed");
-
-    //     console.log(`${index + 1}, ${title} -> ${salary}`)
-
-    //     // const category = classifyjob(title);
-
-    //     // return (
-    //     //     title,
-    //     //     salary,
-    //     //     category
-    //     // )
-
-    //     const category = classifyquestion2(title);
-
-    //     return {
-    //         title:title,
-    //         salary: salary,
-    //         category: category
-        
-    //     }
-    
-            
-    //     });
-
-    //     console.log(alljobdataloop)
-
-        
 
 
     const alljobdataapi  = (title) => {
@@ -885,115 +727,345 @@ bot.onText(/\/mock (.+)/, async (msg, match) => {
 
     console.log(getdet)
 
-        const blogdata = await axios.request(`https://dev.to/api/articles?tag=${userinput}`)
+        const blogdata = await axios.get(`https://dev.to/api/articles?tag=${userinput}`)
 
   
 
-    //    console.log(mockcommass.commit.message)
-    //   console.log(language)
-    //   console.log(description)
-   
+  
      const mockcomassone = mockcommass.commit.message;
       const githubdata = {mockcomassone, language, description}
   
 
-    //   console.log(blogdata.data[3])
-    //   console.log(blogdata.data[25])
-    //   console.log(blogdata.data[26])
-
-
-    //   const blogone = blogdata.data[3]
-    //   const blogtwo = blogdata.data[25]
-    //   const blogthree = blogdata.data[26]
-    //   const allblogdata = {blogone, blogtwo, blogthree}
-
-
-    //   const alljobdataone =alljobdataloop;
-    //   const allmockdata = {githubdata, allblogdata,alljobdataone}
-
-//    const checkingdatafromai = await ai.models.generateContent({
-//     model: 'gemini-2.5-flash',
-//     contents: `${allmockdata} this is all data from github , jobs data , and blogs data I wanted one data like I wanted to know what title will fit which job role like if 
-//     fullstack will be like their job data says full stack developer like this give me in one or word so that it could not be messy it should be clean i need data becasue I need to use`
-//    })
-       
-
-//    const mockresponse = checkingdatafromai.text;
-
-//    bot.sendMessage(chatid, mockresponse)
-      
+ 
 
 
 //Question Title checking Function code
-
-
-   
-    
-       
-
-
-    //   const generatequestiontemplates = 
-    //     `${userinput} is currently ${mockalldatastr} their github shows and their activity on github.Their Scale to job postings are
-    //     ${jobdata}, Design a System according to their activity in latest like ${blogdata}`
-      
-
-    //   const savetemplate = generatequestiontemplates;
-
-    //   const mockresponse = await ai.models.generateContent({
-    //     model: 'gemini-2.5-flash',
-    //   })
-
-    //   const getquestion = mockresponse.text;
-    //   bot.sendMessage(chatid,savetemplate);
 
 
     
 
     const classifyingfromdatatotemplate = getdet;
 
+ 
+
+const questionkeys = {
+    "system design": [
+        "Name 3 ways you would scale this",
+        "What database would you choose and why",
+        "How would you handle failure in this system",
+        "What would break first at 10x traffic",
+        "How would you monitor this in production",
+    ],
+    "data pipeline": [
+        "Name 3 steps in this data flow",
+        "How would you handle data loss here",
+        "What would you cache and why",
+        "How would you make this pipeline faster",
+        "What happens if this pipeline fails midway"
+    ],
+    "performance based": [
+        "Name 3 things causing slowness here",
+        "What would you optimize first and why",
+        "How would you reduce load time here",
+        "What metrics would you track for this",
+        "How would you test performance here"
+    ],
+    "ai based": [
+        "Name 3 ways to improve this model",
+        "What data would you need to train this",
+        "How would you handle wrong predictions",
+        "What would you measure to track accuracy",
+        "How would you reduce model response time"
+    ],
+    "general based": [
+        "What would you check first if this broke",
+        "Name 3 improvements you would make",
+        "How would you make this more reliable",
+        "What security risk do you see here",
+        "How would you make this easier to maintain"
+    ]
+}
+    const pickquestionkey = (category) => {
+        const question = questionkeys[category] || questionkeys["general based"]
+        const randomque = Math.floor(Math.random() * question.length)
+        return question[randomque]
+    }
+    
+
     const combinecontext = classifyingfromdatatotemplate.map((item) => {
         
+        const keyword = pickquestionkey(item.category)
+
         if(item.category==="system design"){
-            const template = `Design a Scalable system according to ${repo} builds using ${language} how ${repo} says and make it short and ${description}`
-            return {template: template}
+            
+
+     const questionuser = `${userinput} just Commited ${mockcomassone} to their ${language} codebase. They are Building ${description}. \n\n${keyword}?`
+            return {questionuser, category: item.category, title: item.title}
         }else if(item.category==="performance based"){
-            const template = `Design a Scalable performance based script according to ${repo} builds using ${language} how ${repo} says and make it short and ${description}`
-           return {template: template}
+    
+
+
+            const questionuser = `${userinput} just Commited ${mockcomassone} to their ${language} codebase. They are Building ${description}. \n\n${keyword}?`
+            return {questionuser, category: item.category, title: item.title}
         }else if(item.category==="data pipeline"){
-            const template = `Design a Scalable data pipeline according to ${repo} builds using ${language} how ${repo} says and make it short and ${description}`
-           return {template: template}
+
+    const questionuser = `${userinput} is building ${description} using ${language}. Their Latest Commit was "${mockcomassone}".\n\n${keyword}?`
+            return {questionuser, category: item.category, title: item.title}
         }else if(item.category==="ai based"){
-            const template = `Design a Scalable ai based script according to ${repo} builds using ${language} how ${repo} says and make it short and ${description}`
-            return {template: template}
-        }else if(item.category==="general based"){
-            const template = `Design a Scalable general based pipeline according to builds using ${language} how ${repo} says and make it short and ${description}`
-           return {template: template}
+     
+             const questionuser = `${userinput}  recently updated their ${language} AI System. Commit Message was : "${mockcomassone}" \n\n${keyword}?`
+            return {questionuser, category: item.category, title: item.title}
         }else{
-            const template = `Didn't get any data try again with other repo`
-            return {template: template}
+        
+         const questionuser = `${userinput} is acitvely working on their ${repo} their latest commit was ${mockcomassone} in language ${language} \n\n${keyword}?`
+            return {questionuser, category: item.category, title: item.title}
         }
     })
 
 
-    const finalquestion = combinecontext;
-    console.log(finalquestion[0].template)
+
+
+    const storecontext  = await saveddata.findOne({name: chatid})
+    if(storecontext){
+        storecontext.mockquestion = combinecontext,
+        storecontext.mockindex = 0,
+        storecontext.mockactive = true
+        
+  
+        await storecontext.save();
+
+    }else{
+        const context = new saveddata({
+            mockquestion: combinecontext,
+            mockindex: 0,
+            mockactive: true
+
+
+            
+        })
+        await context.save();
+    }
+
+
+
+    const finalquestion = combinecontext[0].questionuser;
+    console.log("Generated question: ",finalquestion)
     
-    bot.sendMessage(chatid, finalquestion[0].template)
+    bot.sendMessage(chatid, `Shadow Mock Interview - ${userinput}\n\n Q.1: \n${finalquestion}`, {
+        reply_markup: {
+            inline_keyboard: [
+                [{text: "Get Summary of Mock Question", callback_data:"summarymock"}],
+                [{text: "Get Short answer", callback_data: "shortanswer"}],
+                [{text: "Skip to next", callback_data:"skipped"}]
+            ]
+        }
+    })
     
 })
 
 
-
-bot.on("message", async (msg) => {
-    if (!msg.text) return
-    if (msg.text.startsWith("/")) return;
+bot.on("message", async (msg,match) => {
     const chatid = msg.chat.id;
+    const getmockstartdata = await saveddata.findOne({name: chatid})
 
-    const userinput = msg.text;
+    
+    const getmockindex = getmockstartdata.mockindex;
+    const getmockquestion = getmockstartdata.mockquestion;
+    const getquestiondata = getmockquestion[`${getmockindex}`]
+   
 
-    console.log("We recieved user input")
-    console.log("Send to ai so that we can start process")
-    bot.sendMessage(chatid, `You Said ${userinput}`)
+    if(!getmockstartdata) return;
+    if(getmockstartdata.mockactive===true){
+        const useranswer = msg.text;
+
+           const checkquestionanswer = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents:`${getquestiondata.questionuser} This is the question and this is the ${useranswer} users answer check the 
+    answer of user as lenient way and give recommendation how to improve the stack or their coding environment 
+    to help him crack the company and always answer in shorter format not long and give structured possible way
+    so that user understand dont use stars or any other make short response which only tells user response is correct 
+    or not if not then tell how to improve it and move on to next question say`
+   })
+
+   getmockstartdata.mockactive = false;
+   await getmockstartdata.save();
+
+   bot.sendMessage(chatid,checkquestionanswer.text,{
+    reply_markup: {
+        inline_keyboard: [
+            [{text: "nextquestion", callback_data:"nextquestion"}]
+        ]
+    }
+   })
+
+    }
+
+   
+
+   
+})
+
+
+bot.onText(/\/interview/,async (msg,match) => {
+    const chatid = msg.chat.id;
+    const userinput = await saveddata.findOne({name: chatid});
+    const comp = await userinput.trackedcompany;
+    const useri = await userinput.userinput;
+
+
+    bot.sendMessage(chatid, `Welcome to /interview Ready to Prepare according to companies latest activity`)
+    const alldata = await saveddata.findOne({name: chatid})
+    const somespecifidata = alldata.aireport;
+    
+    const shadowquestion = await alldata.mockquestion;
+    
+
+    const generatingintq = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: `Data: ${comp} ${useri} ${somespecifidata} ${shadowquestion}these are all data of user
+        now generate 10 short but valuable question using all data there is also i have provided 
+        shadow bot question that bot prepared for user use also that to generate question
+        but those question from which user gets help to prepare best for the company dont use the word Shadow Report use only 
+        valuable things to generate question dont use any other thing from report`
+    })
+
+    console.log(generatingintq.text);
+    const responsefromdb = generatingintq.text;
+    bot.sendMessage(chatid, `<b>${responsefromdb}</b>`, {
+        parse_mode: "HTML"
+    })
+
+    bot.sendMessage(chatid,"Next Question",{
+        reply_markup:{
+            inline_keyboard:[
+                [{text: "nextquestion",callback_data:"nextquestion"}]
+            ]
+        }
+    })
+
+  
 
 
 })
+
+
+
+
+
+
+bot.on("callback_query", async (query,finalquestion) => {
+    const chatid = query.message.chat.id;
+
+
+    //Cron Callback Queries
+
+
+      if (query.data.startsWith("schedule_true_")) {
+        const company = query.data.replace("schedule_true", "")
+        const user = await saveddata.findOne({ name: chatid })
+        if (user) {
+            user.scheduling = true
+            user.trackedcompany = company,
+                await user.save()
+        }
+        bot.answerCallbackQuery(query.id, {
+            text: "Done Bot will send a new report at every 9 AM"
+
+        })
+        bot.pinChatMessage(chatid, query.message_id)
+
+    } else if (query.data === "schedule_false") {
+        const user = await saveddata.findOne({ name: chatid })
+        if (user) {
+            user.scheduling = false
+            await user.save();
+        }
+        bot.answerCallbackQuery(query.id, {
+            text: "No problem we will not send any report if want a report just type /track"
+        })
+    }
+
+
+   
+    if(query.data.startsWith("summarymock")){
+        const getprevmockdata = await saveddata.findOne({name: chatid})
+        const prevdata = getprevmockdata.mockindex;
+        const prevquestiondata = getprevmockdata.mockquestion;
+        const getboth = prevquestiondata[`${prevdata}`]
+        const comits = JSON.parse(getprevmockdata.alldatastr);
+        const getstr = comits.commass;
+        const getgith = comits.repoalldata;
+        const aldatata = {comits,getstr,getgith}
+
+        const summary = await ai.models.generateContent({
+            model:"gemini-2.5-flash",
+            contents:`${getboth.questionuser} this is the Question that give to the user so generate a summary and here is github context ${comits.orgass?.name},
+             Language: ${comits.orgass?.language} , Description: ${comits.orgass?.description}, Latest Commit: ${comits.commass?.commit?.message},
+             Summarize in 3-4 short bullet points so that user can answer confidently`
+        })
+
+        bot.sendMessage(chatid,summary.text)
+    }
+
+
+    if(query.data.startsWith("nextquestion")){
+         const nextdat = await saveddata.findOne({name: chatid})
+    const nextdatsimp = nextdat.mockindex;
+    const nextmockqe = nextdat.mockquestion;
+    const currentnext = nextmockqe[`${nextdatsimp}`]
+        bot.sendMessage(chatid,"Please wait giving next question")
+        bot.sendMessage(chatid,`${currentnext.questionuser}`)
+    }
+
+
+
+
+
+
+
+
+    //Mock Callbacks Queries
+    if(query.data.startsWith("shortanswer")){
+        bot.sendMessage(chatid,"Ok prividing short answer")
+        const findindexquestion = await saveddata.findOne({name: chatid})
+        
+        const findquestind = findindexquestion.mockindex;
+        const findquesti = findindexquestion.mockquestion;
+        const currentuserquestio = findquesti[`${findquestind}`]
+        console.log(findquesti)
+        console.log(findquestind)
+        console.log(currentuserquestio)
+        const shortanswer = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents:`${currentuserquestio.questionuser} this is the question answer always question in three bulleted points and not more than 3 lines 
+            and give answer always in points so that user gets all understandable`
+        })
+
+        bot.sendMessage(chatid, `Short Answer: \n\n ${shortanswer.text}`)
+    }else if(query.data.startsWith("skipped")){
+        bot.sendMessage(chatid,"I have saved moving on to the next question")
+        const findindex = await saveddata.findOne({name: chatid})
+        if(findindex && findindex.mockquestion || findindex.mockquestion.length===0){
+            const nextindex = findindex.mockindex + 1;
+            if(nextindex >= findindex.mockquestion.length){
+                bot.sendMessage(chatid, "Mock Completed You have gone through all question ")
+                return
+            }
+            const nextQuestion = findindex.mockquestion[nextindex].questionuser;
+
+            findindex.mockindex = nextindex;
+            await findindex.save()
+     
+            console.log(findindex)
+            bot.sendMessage(chatid, `Q. ${nextindex + 1}: ${nextQuestion}`,{
+                reply_markup: {
+                    inline_keyboard: [
+                        [{text: "short answer", callback_data: "shortanswer"}],
+                        [{text: "skip question", callback_data: "skipped"}]
+                    ]
+                }
+            })
+        }
+    }
+})
+

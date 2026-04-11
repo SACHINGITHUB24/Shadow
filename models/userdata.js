@@ -16,6 +16,9 @@ const userschema = new mongoose.Schema({
     lastgeneratedat: Date,
     interview: String,
     mock: String,
+    mockquestion: {type: Array, default: []},
+    mockindex: {type: Number, default: 0},
+    mockactive: Boolean,
     
     
     
