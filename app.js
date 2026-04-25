@@ -16,7 +16,7 @@ const client = new Anthropic({
     apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY5;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY3;
 
 const ai = new GoogleGenAI({
     apiKey: GEMINI_API_KEY
@@ -489,10 +489,14 @@ bot.onText(/\/latestreport (.+)/, async (msg, match) => {
 
     if (userdata.aireport && userdata.trackedcompany == userinput && userdata.lastgeneratedat && (now - new Date(userdata.lastgeneratedat)) < sixhours) {
         bot.sendMessage(chatid, `The lastest report of ${userinput}`)
-        bot.sendMessage(chatid, userdata.aireport)
+        const aireport = userdata.aireport;
+        console.log(aireport)
+        bot.sendMessage(chatid, aireport)
         return
     } else {
         bot.sendMessage(chatid, "Timed our Generating new Report")
+        const newreport = generateAndSendReport(chatid,userdata.trackedcompany,userdata.stack.toLowerCase())
+        bot.sendMessage(chatid,newreport)
 
     }
 
@@ -535,9 +539,12 @@ bot.onText(/\/report/, async (msg) => {
     const prevreport = await saveddata.findOne({ name: chatid })
     if (!prevreport) {
         bot.sendMessage(chatid, "No data found first /track")
-    }
-    const newreport = await generateAndSendReport(chatid, prevreport.trackedcompany, prevreport.stack.toLowerCase())
+    }else{
+        const newreport = await generateAndSendReport(chatid, prevreport.trackedcompany, prevreport.stack.toLowerCase())
     bot.sendMessage(chatid, newreport)
+
+    }
+    
 })
 
 // /mock with Shadow Mock Question Engine Just see what I do.....
@@ -1026,7 +1033,7 @@ bot.on("callback_query", async (query,finalquestion) => {
 
     //Mock Callbacks Queries
     if(query.data.startsWith("shortanswer")){
-        bot.sendMessage(chatid,"Ok prividing short answer")
+        bot.sendMessage(chatid,"Ok providing short answer")
         const findindexquestion = await saveddata.findOne({name: chatid})
         
         const findquestind = findindexquestion.mockindex;
